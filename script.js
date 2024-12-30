@@ -21,7 +21,7 @@
         function initializeGoogleAuth() {
             gapi.load('client:auth2', () => {
                 gapi.auth2.init({
-                    client_id: 'YOUR_CLIENT_ID', // Replace with your actual client ID
+                    client_id: '147934510488-2eeg7uct5hl78a29igth97057perrg3f.apps.googleusercontent.com', // Replace with your actual client ID
                     scope: 'https://www.googleapis.com/auth/drive.file', // Google Drive file permissions
                 }).then(() => {
                     gapiLoaded = true;
