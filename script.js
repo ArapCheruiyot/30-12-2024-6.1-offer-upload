@@ -2,7 +2,7 @@
 function initializeGoogleAuth() {
     gapi.load('client:auth2', () => {
         gapi.auth2.init({
-            client_id: 'YOUR_CLIENT_ID.apps.googleusercontent.com', // Replace YOUR_CLIENT_ID
+            client_id: '147934510488-allie69121uoboqbr26nhql7u0205res.apps.googleusercontent.com', // Replace YOUR_CLIENT_ID
             scope: 'https://www.googleapis.com/auth/drive.file',
         }).then(() => {
             console.log('Google API initialized');
