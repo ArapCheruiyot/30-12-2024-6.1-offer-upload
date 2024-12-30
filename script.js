@@ -1,112 +1,170 @@
-// Initialize Google API
-function initializeGoogleAuth() {
-    gapi.load('client:auth2', () => {
-        gapi.auth2.init({
-            client_id: 'YOUR_CLIENT_ID.apps.googleusercontent.com', // Replace YOUR_CLIENT_ID
-            scope: 'https://www.googleapis.com/auth/drive.file',
-        }).then(() => {
-            console.log('Google API initialized');
-            updateUI(false);
-        }).catch(error => {
-            console.error('Error initializing Google API:', error);
-        });
-    });
-}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Google Drive File Upload</title>
+    <script src="https://apis.google.com/js/api.js"></script>
+</head>
+<body>
+    <button id="signInBtn">Sign In with Google</button>
+    <input type="file" id="fileInput" style="display: none;">
+    <div id="fileList"></div>
+    <button id="uploadBtn" style="display: none;" disabled>Upload Files</button>
+    <button id="deleteSelectedBtn" style="display: none;">Delete Selected Files</button>
+    <div id="uploadStatus" style="display: none;"></div>
 
-// DOM Elements
-const signInBtn = document.getElementById('signInBtn');
-const signOutBtn = document.getElementById('signOutBtn');
-const fileInput = document.getElementById('fileInput');
-const selectFilesBtn = document.getElementById('selectFilesBtn');
-const uploadBtn = document.getElementById('uploadBtn');
-const fileList = document.getElementById('fileList');
-const uploadStatus = document.getElementById('uploadStatus');
+    <script>
+        let gapiLoaded = false;
 
-// Update UI based on sign-in status
-function updateUI(isSignedIn) {
-    signInBtn.style.display = isSignedIn ? 'none' : 'block';
-    signOutBtn.style.display = isSignedIn ? 'inline-block' : 'none';
-    selectFilesBtn.style.display = isSignedIn ? 'inline-block' : 'none';
-    uploadBtn.style.display = 'none';
-    fileInput.style.display = 'none';
-}
-
-// Handle Google Sign-In
-signInBtn.addEventListener('click', () => {
-    gapi.auth2.getAuthInstance().signIn().then(user => {
-        console.log('Signed in as:', user.getBasicProfile().getName());
-        updateUI(true);
-    }).catch(error => {
-        console.error('Sign-in error:', error);
-    });
-});
-
-// Handle Google Sign-Out
-signOutBtn.addEventListener('click', () => {
-    gapi.auth2.getAuthInstance().signOut().then(() => {
-        console.log('User signed out');
-        updateUI(false);
-        fileList.innerHTML = '';
-        uploadStatus.textContent = '';
-    }).catch(error => {
-        console.error('Sign-out error:', error);
-    });
-});
-
-// Handle File Selection
-selectFilesBtn.addEventListener('click', () => {
-    fileInput.click();
-});
-
-fileInput.addEventListener('change', () => {
-    const files = Array.from(fileInput.files);
-    fileList.innerHTML = ''; // Clear the file list
-    files.forEach((file, index) => {
-        const fileItem = document.createElement('div');
-        fileItem.textContent = file.name;
-        fileList.appendChild(fileItem);
-    });
-    uploadBtn.style.display = files.length > 0 ? 'inline-block' : 'none';
-    uploadBtn.disabled = files.length === 0;
-});
-
-// Upload Files
-uploadBtn.addEventListener('click', () => {
-    const files = Array.from(fileInput.files);
-
-    if (files.length === 0) {
-        alert('No files selected for upload');
-        return;
-    }
-
-    const accessToken = gapi.auth2.getAuthInstance().currentUser.get().getAuthResponse().access_token;
-
-    files.forEach(file => {
-        const metadata = {
-            name: file.name,
-            mimeType: file.type,
-        };
-
-        const formData = new FormData();
-        formData.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
-        formData.append('file', file);
-
-        fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
-            method: 'POST',
-            headers: new Headers({ 'Authorization': `Bearer ${accessToken}` }),
-            body: formData,
-        })
-            .then(response => response.json())
-            .then(data => {
-                console.log(`Uploaded: ${data.name}`);
-                uploadStatus.textContent = `Uploaded: ${data.name}`;
-            })
-            .catch(error => {
-                console.error('Upload error:', error);
-                uploadStatus.textContent = 'Error uploading files';
+        // Initialize Google API and authentication client
+        function initializeGoogleAuth() {
+            gapi.load('client:auth2', () => {
+                gapi.auth2.init({
+                    client_id: 'YOUR_CLIENT_ID', // Replace with your actual client ID
+                    scope: 'https://www.googleapis.com/auth/drive.file', // Google Drive file permissions
+                }).then(() => {
+                    gapiLoaded = true;
+                    console.log('Google API initialized');
+                    checkUserSignedIn(); // Check if user is signed in
+                }).catch(error => {
+                    console.error('Error initializing Google API:', error);
+                });
             });
-    });
-});
+        }
 
-// Initialize on page load
-document.addEventListener('DOMContentLoaded', initializeGoogleAuth);
+        // Check if the user is signed in
+        function checkUserSignedIn() {
+            if (gapiLoaded) {
+                const authInstance = gapi.auth2.getAuthInstance();
+                const user = authInstance.currentUser.get();
+
+                if (user.isSignedIn()) {
+                    console.log('User is signed in');
+                    showFileSelectionUI();
+                } else {
+                    console.log('User not signed in');
+                    showSignInButton();
+                }
+            }
+        }
+
+        // Show file selection UI after successful login
+        function showFileSelectionUI() {
+            document.getElementById('signInBtn').style.display = 'none';
+            document.getElementById('fileInput').style.display = 'inline-block';
+            document.getElementById('uploadBtn').style.display = 'inline-block';
+            document.getElementById('deleteSelectedBtn').style.display = 'inline-block';
+        }
+
+        // Show the Google Sign-In button if the user is not signed in
+        function showSignInButton() {
+            document.getElementById('signInBtn').style.display = 'inline-block';
+        }
+
+        // Handle Google Sign-In button click
+        function handleSignInClick() {
+            const authInstance = gapi.auth2.getAuthInstance();
+            authInstance.signIn().then(() => {
+                console.log('User signed in');
+                showFileSelectionUI();
+            }).catch(error => {
+                console.error('Sign-In failed', error);
+            });
+        }
+
+        // Handle file input changes (file selection)
+        const fileInput = document.getElementById('fileInput');
+        fileInput.addEventListener('change', () => {
+            const files = Array.from(fileInput.files);
+            displayFileList(files);
+        });
+
+        // Display selected files in the UI
+        function displayFileList(files) {
+            const fileList = document.getElementById('fileList');
+            fileList.innerHTML = ''; // Clear previous file list
+
+            files.forEach((file, index) => {
+                const fileItem = document.createElement('div');
+                fileItem.textContent = file.name;
+                fileItem.dataset.index = index;
+                fileList.appendChild(fileItem);
+            });
+
+            // Enable upload and delete buttons
+            const uploadBtn = document.getElementById('uploadBtn');
+            const deleteSelectedBtn = document.getElementById('deleteSelectedBtn');
+            if (files.length > 0) {
+                uploadBtn.disabled = false;
+                uploadBtn.style.display = 'inline-block';
+                deleteSelectedBtn.style.display = 'inline-block';
+            } else {
+                uploadBtn.disabled = true;
+                uploadBtn.style.display = 'none';
+                deleteSelectedBtn.style.display = 'none';
+            }
+        }
+
+        // Handle file upload
+        function uploadFiles() {
+            const files = fileInput.files;
+            const accessToken = gapi.auth2.getAuthInstance().currentUser.get().getAuthResponse().access_token;
+
+            if (files.length === 0) {
+                alert('Please select files to upload.');
+                return;
+            }
+
+            Array.from(files).forEach(file => {
+                const metadata = {
+                    name: file.name,
+                    mimeType: file.type,
+                };
+
+                const formData = new FormData();
+                formData.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
+                formData.append('file', file);
+
+                fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${accessToken}`
+                    },
+                    body: formData,
+                })
+                .then(response => response.json())
+                .then(data => {
+                    console.log(`Uploaded file: ${data.name}`);
+                    updateStatus(`Uploaded file: ${data.name}`);
+                })
+                .catch(error => {
+                    console.error('Error uploading file:', error);
+                    updateStatus('Error uploading file. See console for details.');
+                });
+            });
+        }
+
+        // Update the upload status
+        function updateStatus(message) {
+            const uploadStatus = document.getElementById('uploadStatus');
+            uploadStatus.textContent = message;
+            uploadStatus.style.display = 'block';
+
+            // Hide the status after 5 seconds
+            setTimeout(() => {
+                uploadStatus.style.display = 'none';
+            }, 5000);
+        }
+
+        // Event listeners for buttons
+        document.getElementById('signInBtn').addEventListener('click', handleSignInClick);
+        document.getElementById('uploadBtn').addEventListener('click', uploadFiles);
+
+        // Initialize Google Auth when the page loads
+        window.addEventListener('DOMContentLoaded', () => {
+            initializeGoogleAuth();
+        });
+    </script>
+</body>
+</html>
