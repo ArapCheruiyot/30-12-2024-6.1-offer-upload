@@ -3,44 +3,34 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="google-signin-client_id" content="147934510488-allie69121uoboqbr26nhql7u0205res.apps.googleusercontent.com">
-    <title>File Uploader</title>
+    <meta name="google-signin-client_id" content="YOUR_CLIENT_ID.apps.googleusercontent.com"> <!-- Replace YOUR_CLIENT_ID -->
+    <title>Google Drive File Uploader</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <header>
-        <h1>File Uploader with Google Drive Integration</h1>
+        <h1>Google Drive File Uploader</h1>
     </header>
-    <main class="container">
-        <!-- Google Sign-In Section -->
-        <section>
-            <div class="g_id_signin" aria-label="Google Sign-In Button"></div>
-        </section>
+    <div class="container">
+        <!-- Google Sign-In Button -->
+        <button id="signInBtn">Sign In with Google</button>
+        <button id="signOutBtn" style="display: none;">Sign Out</button>
 
         <!-- File Selection Section -->
-        <section class="file-upload-section">
-            <label for="fileInput" class="file-label">Select Files:</label>
-            <input type="file" id="fileInput" multiple style="display: none;">
-            <button id="deleteSelectedBtn" style="display: none;">Delete Selected</button>
-            <button id="uploadBtn" disabled style="display: none;">Upload Files</button>
-        </section>
+        <input type="file" id="fileInput" multiple style="display: none;">
+        <button id="selectFilesBtn" style="display: none;">Select Files</button>
+        <button id="uploadBtn" disabled style="display: none;">Upload Files</button>
 
         <!-- File List Display -->
-        <section>
-            <div id="fileList" class="file-list" aria-live="polite"></div>
-        </section>
+        <div id="fileList" class="file-list"></div>
 
         <!-- Upload Status -->
-        <section>
-            <div id="uploadStatus" class="upload-status" aria-live="polite"></div>
-        </section>
-    </main>
+        <div id="uploadStatus"></div>
+    </div>
 
     <!-- Include Google Platform Library -->
     <script src="https://accounts.google.com/gsi/client" async defer></script>
-    <!-- Include Google API JavaScript Client Library -->
     <script src="https://apis.google.com/js/api.js" async defer></script>
-    <!-- Link to External JavaScript -->
     <script src="script.js" defer></script>
 </body>
 </html>
